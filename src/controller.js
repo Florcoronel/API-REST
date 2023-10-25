@@ -24,10 +24,19 @@ class LibroController{
     
     async add(req, res){
         const libro = req.body;
-        const [result] = await pool.query(`INSERT INTO libros(nombre,autor,categoria,añopublicacion,ISBN) VALUES (?,?,?,?,?)`,[libro.nombre, libro.autor, libro.categoria, libro.añopublicacion, libro.ISBN]);
+        const [result] = await pool.query(`INSERT INTO libros(nombre,autor,categoria,añopublicacion,ISBN) VALUES (?,?,?,?,?)`,[libro.nombre, libro.autor, libro.categoria, libro.añopublicacion, libro.isbn]);
         res.json({"id insertado": result.insertId})
     }
-    
+    async delete(req, res){
+        const libro = req.body;
+        const [result] = await pool.query(`DELETE FROM Libros where isbn= (?)`,[ libro.isbn]);
+        res.json({"Libro eliminado": result.affectedRows});
+    }
+    async update(req, res){
+        const libro = req.body;
+        const [result] = await pool.query(`UPDATE Libros set  nombre=?, autor=?, categoria=?, añopublicacion=?, isbn=? WHERE id=?`,[libro.nombre, libro.autor, libro.categoria, libro.añopublicacion, libro.isbn, libro.id]);
+        res.json({"Libro actualizado": result.affectedRows})
+    }
    }
 
 export const libro = new LibroController();
