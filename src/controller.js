@@ -40,14 +40,40 @@ class LibroController{
     }
     async delete(req, res){
         const libro = req.body;
-        const [result] = await pool.query(`DELETE FROM Libros where isbn= (?)`,[ libro.isbn]);
-        res.json({"Libro eliminado": result.affectedRows});
+        try{
+            const [result] = await pool.query(`SELECT * FROM libros WHERE isbn=(?)`, [libro.isbn]);
+             if (result.length > 0){
+                const [result] = await pool.query(`DELETE FROM libros WHERE isbn=(?)`,[libro.isbn]);
+                res.json({"Libro eliminado": result.affectedRows});
+             
+        } else {
+            res.status(404).json({ "Mensaje": "No se encontro el libro con el ISBN especificado" });
+        }}
+        catch (error){ 
+            console.error("Error al eliminar el libro por ISBN:", error);
+            res.status(500).json({ "Mensaje": "Error en el servidor" });
+        }
+        
     }
-    async update(req, res){
-        const libro = req.body;
-        const [result] = await pool.query(`UPDATE Libros set  nombre=?, autor=?, categoria=?, añopublicacion=?, isbn=? WHERE id=?`,[libro.nombre, libro.autor, libro.categoria, libro.añopublicacion, libro.isbn, libro.id]);
-        res.json({"Libro actualizado": result.affectedRows})
-    }
-   }
 
-export const libro = new LibroController();
+    async update(req, res) {
+
+        try {
+            const libro = req.body;
+            if (libro.id && libro.nombre && libro.autor && libro.categoria && libro.añopublicacion && libro.isbn) {
+              const query = `UPDATE libros SET nombre = ?, autor = ?, categoria = ?, añopublicacion = ?, ISBN = ? WHERE id = ?`;
+              const values = [libro.nombre, libro.autor, libro.categoria, libro.añopublicacion, libro.isbn, libro.id];
+              const [result] = await pool.query(query, values);
+              if (result.affectedRows === 0) {
+                throw { error: "No se encontró ningún libro para actualizar" };
+              }
+              res.json({ "Registro Actualizado": result.affectedRows });
+            } else {
+              throw { error: "Faltan campos obligatorios" };
+            }
+          } catch (error) {
+            res.status(400).json(error);
+          }
+        }
+     }
+export const libro = new LibroController(); 
